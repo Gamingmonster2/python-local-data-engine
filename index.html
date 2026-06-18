@@ -2,58 +2,113 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>مستقبل البيانات - بايثون</title>
+    <title>محرك بايثون داخل المتصفح</title>
+    
+    <!-- منع تنبيه الأيقونة المفقودة -->
+    <link rel="icon" href="data:,">
+
+    <!-- جلب بيئة تشغيل بايثون داخل المتصفح (PyScript) -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; text-align: center; background: #f4f6f9; }
-        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-        pre { background: #222; color: #0f0; text-align: left; padding: 15px; border-radius: 5px; direction: ltr; overflow-x: auto; }
+        body { font-family: Arial, sans-serif; margin: 40px; text-align: center; background: #f4f6f9; color: #333; }
+        .box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+        input[type="file"] { margin: 15px 0; }
+        pre { background: #222; color: #0f0; text-align: left; padding: 15px; border-radius: 5px; direction: ltr; overflow-x: auto; max-width: 800px; margin: 20px auto; font-family: monospace; }
+        .loading { color: #ff9800; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>محرك المعالجة الهجين (بايثون + ويب)</h1>
+    <h1>محرك بايثون محلي بالكامل (بدون سيرفر)</h1>
     
     <div class="box">
-        <h3>اختر ملف CSV واختبر قوة المعالجة الخلفية:</h3>
+        <h3>اختر ملف CSV واختبر قوة معالجة مكتبة Pandas في المتصفح:</h3>
         <input type="file" id="csvFile" accept=".csv">
-        <br>
-        <button onclick="uploadAndProcess()">إرسال للمحرك البصري وبايثون</button>
     </div>
 
-    <h3 style="margin-top: 30px;">الاستجابة البرمجية القادمة من البايثون (JSON):</h3>
-    <div style="max-width: 800px; margin: 0 auto;">
-        <pre id="output">في انتظار رفع الملف...</pre>
-    </div>
+    <h3 style="margin-top: 30px;">نتائج معالجة محرك بايثون (Pandas Output):</h3>
+    <pre id="output">جاري تحميل بيئة بايثون داخل المتصفح، يرجى الانتظار ثوانٍ...</pre>
 
-    <script>
-        async function uploadAndProcess() {
-            const fileInput = document.getElementById('csvFile');
-            const output = document.getElementById('output');
+    <!-- تهيئة بيئة بايثون وتثبيت مكتبة بايثون لمعالجة البيانات -->
+    <py-config>
+        packages = ["pandas"]
+    </py-config>
+
+    <!-- كود البايثون الحقيقي الذي سيعمل داخل المتصفح -->
+    <py-script>
+import pandas as pd
+import io
+from js import document, FileReader, Uint8Array
+from pyodide.ffi import create_proxy
+
+# تغيير النص الابتدائي فور اكتمال تحميل بايثون
+document.getElementById("output").innerText = "بيئة بايثون جاهزة! قم برفع ملف CSV الآن لتبدأ المعالجة الجبارة."
+
+def process_file(event):
+    output_element = document.getElementById("output")
+    output_element.innerText = "جاري المعالجة بواسطة كود بايثون محلياً..."
+    
+    file_list = document.getElementById("csvFile").files
+    if file_list.length == 0:
+        output_element.innerText = "الرجاء اختيار ملف أولاً!"
+        return
+        
+    file = file_list.item(0)
+    reader = FileReader.new()
+    
+    def on_load(e):
+        try:
+            # قراءة محتوى الملف النصي
+            file_content = e.target.result
             
-            if (fileInput.files.length === 0) {
-                alert('الرجاء اختيار ملف أولاً!');
-                return;
-            }
-
-            output.innerText = "جاري المعالجة بواسطة سكريبت البايثون المحلي...";
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            try {
-                // الاتصال المباشر بسيرفر البايثون المحلي على منفذ 5000
-                const response = await fetch('http://127.0.0.1:5000/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
+            # تحويل النص إلى StringIO لتقرأه مكتبة Pandas الشهيرة في بايثون
+            data_stream = io.StringIO(file_content)
+            df = pd.read_csv(data_stream)
+            
+            # الحسابات الإحصائية المتقدمة والعميقة بسرعة بايثون
+            total_rows, total_cols = df.shape
+            columns_list = list(df.columns)
+            
+            report = []
+            report.append("=" * 60)
+            report.append(f" 🐍 PYTHON BROWSER ENGINE REPORT (PANDAS)")
+            report.append("=" * 60)
+            report.append(f"🔹 Total Records (Rows): {total_rows}")
+            report.append(f"🔹 Total Columns: {total_cols} -> {columns_list}")
+            report.append("-" * 60)
+            
+            # فحص الأعمدة الرقمية وحساب المعدلات والحد الأقصى والأدنى
+            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+            if numeric_cols:
+                report.append("📈 Summary Statistics for Numeric Data:")
+                summary = df[numeric_cols].describe().loc[['mean', 'min', 'max']]
+                summary.index = ['Average (المعدل)', 'Minimum (الأقل)', 'Maximum (الأعلى)']
+                report.append(summary.to_string())
+            else:
+                report.append("⚠️ No numeric columns found for deep statistical analysis.")
                 
-                const data = await response.json();
-                output.innerText = JSON.stringify(data, null, 4);
-            } catch (error) {
-                output.innerText = "خطأ في الاتصال بسيرفر البايثون: " + error.message;
-            }
-        }
-    </script>
+            report.append("-" * 60)
+            report.append("👀 First 5 Rows Preview:")
+            report.append(df.head(5).to_string(index=False))
+            report.append("=" * 60)
+            
+            # عرض التقرير النهائي النظيف في المتصفح
+            output_element.innerText = "\n".join(report)
+            
+        except Exception as ex:
+            output_element.innerText = f"❌ خطأ أثناء معالجة البايثون للملف: {str(ex)}"
+            
+    # ربط الأحداث بقارئ الملفات
+    proxy = create_proxy(on_load)
+    reader.onload = proxy
+    reader.readAsText(file)
+
+# ربط عنصر رفع الملف بكود بايثون مباشرة عند التغيير
+change_proxy = create_proxy(process_file)
+document.getElementById("csvFile").addEventListener("change", change_proxy)
+    </py-script>
+
 </body>
 </html>
