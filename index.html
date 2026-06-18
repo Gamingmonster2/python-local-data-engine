@@ -1,42 +1,420 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <title>محرك بايثون داخل المتصفح</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="page_title">محرك بايثون داخل المتصفح | Local Data Profiler</title>
     
-    <!-- منع تنبيه الأيقونة المفقودة -->
+    <!-- Prevent missing favicon alert -->
     <link rel="icon" href="data:,">
 
-    <!-- جلب بيئة تشغيل بايثون داخل المتصفح (PyScript) -->
+    <!-- Tailwind CSS & Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PyScript Assets -->
     <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
     <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        pearl: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#0b0f19',
+                        },
+                        hologram: {
+                            mint: '#a7f3d0',
+                            lavender: '#ddd6fe',
+                            blue: '#bae6fd',
+                            gold: '#fef08a',
+                        }
+                    },
+                    animation: {
+                        'float-slow': 'float 8s ease-in-out infinite',
+                        'float-medium': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; text-align: center; background: #f4f6f9; color: #333; }
-        .box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
-        input[type="file"] { margin: 15px 0; }
-        pre { background: #222; color: #0f0; text-align: left; padding: 15px; border-radius: 5px; direction: ltr; overflow-x: auto; max-width: 800px; margin: 20px auto; font-family: monospace; }
-        .loading { color: #ff9800; font-weight: bold; }
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Pearlescent Ambient Glows */
+        .pearl-glow-1 {
+            background: radial-gradient(circle, rgba(221,214,254,0.4) 0%, rgba(255,255,255,0) 70%);
+        }
+        .pearl-glow-2 {
+            background: radial-gradient(circle, rgba(167,243,208,0.3) 0%, rgba(255,255,255,0) 70%);
+        }
+        .pearl-glow-3 {
+            background: radial-gradient(circle, rgba(186,230,253,0.4) 0%, rgba(255,255,255,0) 70%);
+        }
     </style>
 </head>
-<body>
+<body class="bg-[#fcfdfd] text-pearl-800 font-cairo transition-all duration-300 min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <h1>محرك بايثون محلي بالكامل (بدون سيرفر)</h1>
-    
-    <div class="box">
-        <h3>اختر ملف CSV واختبر قوة معالجة مكتبة Pandas في المتصفح:</h3>
-        <input type="file" id="csvFile" accept=".csv">
-    </div>
+    <!-- Ambient Pearlescent Background Overlays -->
+    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] pearl-glow-1 rounded-full -translate-y-1/2 pointer-events-none z-0 animate-pulse-slow"></div>
+    <div class="absolute top-1/3 right-1/4 w-[600px] h-[600px] pearl-glow-2 rounded-full pointer-events-none z-0 animate-float-slow"></div>
+    <div class="absolute bottom-1/4 left-1/3 w-[550px] h-[550px] pearl-glow-3 rounded-full pointer-events-none z-0 animate-float-medium"></div>
 
-    <h3 style="margin-top: 30px;">نتائج معالجة محرك بايثون (Pandas Output):</h3>
-    <pre id="output">جاري تحميل بيئة بايثون داخل المتصفح، يرجى الانتظار ثوانٍ...</pre>
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 w-full glass-panel border-b border-pearl-200/50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Logo Brand -->
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-500 via-indigo-400 to-emerald-400 p-[2px] shadow-lg shadow-indigo-100 animate-pulse-slow">
+                    <div class="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-pearl-900 via-indigo-950 to-pearl-950 bg-clip-text text-transparent font-inter block" data-i18n="brand_name">PYTHON BROWSER ENGINE</span>
+                    <span class="text-[10px] uppercase tracking-widest text-indigo-600 font-semibold block" data-i18n="brand_sub">Local Data Profiler</span>
+                </div>
+            </div>
 
-    <!-- تهيئة بيئة بايثون وتثبيت مكتبة بايثون لمعالجة البيانات -->
+            <!-- Navigation Tabs (SPA Layout) -->
+            <nav class="hidden md:flex items-center bg-pearl-100/80 p-1 rounded-xl border border-pearl-200/50">
+                <button onclick="switchTab('tab-home')" id="btn-tab-home" class="tab-btn px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 text-indigo-600 bg-white shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span data-i18n="nav_home">الرئيسية</span>
+                </button>
+                <button onclick="switchTab('tab-js')" id="btn-tab-js" class="tab-btn px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 text-pearl-600 hover:text-pearl-900">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span data-i18n="nav_js">JS Client Engine</span>
+                </button>
+                <button onclick="switchTab('tab-python')" id="btn-tab-python" class="tab-btn px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 text-pearl-600 hover:text-pearl-900">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    <span data-i18n="nav_python">Python Engine</span>
+                </button>
+            </nav>
+
+            <!-- Language Switcher & Actions -->
+            <div class="flex items-center gap-3">
+                <!-- Language Switcher Button -->
+                <button onclick="toggleLanguage()" class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-xs font-bold text-pearl-900 rounded-lg group bg-gradient-to-br from-purple-500 to-emerald-400 group-hover:from-purple-500 group-hover:to-emerald-400 hover:text-white focus:ring-4 focus:outline-none focus:ring-purple-200">
+                    <span class="relative px-4 py-2 transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0 font-inter">
+                        <span id="lang-label">EN</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area wrapped in Semantic Landmark -->
+    <main id="main-content" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 z-10">
+
+        <!-- TAB 1: HOME SECTION (Welcome Page) -->
+        <section id="tab-home" class="tab-content block space-y-16 animate-fade-in">
+            <!-- Hero Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-6">
+                <div class="lg:col-span-7 space-y-6 text-right rtl:text-right ltr:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100/80 text-indigo-700 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <span data-i18n="hero_badge">الجيل القادم من معالجة البيانات داخل المتصفح</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-pearl-900">
+                        <span data-i18n="hero_title_1">حلل بياناتك محلياً</span><br>
+                        <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 bg-clip-text text-transparent" data-i18n="hero_title_2">بسرعة فائقة وأمان تام</span>
+                    </h1>
+                    <p class="text-base sm:text-lg text-pearl-500 max-w-2xl leading-relaxed" data-i18n="hero_desc">
+                        أداة ثورية تتيح لك تشغيل بيئة بايثون ومكتبة Pandas الإحصائية مباشرة داخل متصفحك دون الحاجة إلى خوادم خارجية. بياناتك تظل آمنة تماماً على جهازك الشخصي بنسبة 100%.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-4 justify-start">
+                        <button onclick="switchTab('tab-python')" class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-3">
+                            <span data-i18n="hero_cta_primary">ابدأ تشغيل محرك بايثون</span>
+                            <svg class="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                        <button onclick="switchTab('tab-js')" class="px-8 py-4 bg-white hover:bg-pearl-50 text-pearl-800 font-semibold rounded-xl border border-pearl-200 hover:border-pearl-300 transition-all duration-300 shadow-sm flex items-center gap-2">
+                            <span data-i18n="hero_cta_secondary">معالج JS السريع</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Floating Interactive Visuals -->
+                <div class="lg:col-span-5 relative flex items-center justify-center min-h-[350px]">
+                    <!-- Outer glowing ring -->
+                    <div class="absolute w-72 h-72 rounded-full border border-dashed border-indigo-200 animate-spin-slow"></div>
+                    <!-- Isometric Pearl Sphere Container -->
+                    <div class="relative w-64 h-64 rounded-3xl glass-panel shadow-2xl flex items-center justify-center animate-float-medium border border-white/60">
+                        <div class="absolute inset-4 rounded-2xl bg-gradient-to-br from-purple-100 via-emerald-50 to-blue-100 opacity-60"></div>
+                        <!-- Inner Glowing Ball -->
+                        <div class="relative w-32 h-32 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-400 to-emerald-300 shadow-inner flex items-center justify-center animate-pulse">
+                            <svg class="w-16 h-16 text-white opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10">
+                <div class="glass-panel p-8 rounded-2xl border border-pearl-200/60 shadow-sm hover:shadow-md transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-pearl-900 mb-2" data-i18n="feat_1_title">أمان مطلق للبيانات</h3>
+                    <p class="text-sm text-pearl-500 leading-relaxed" data-i18n="feat_1_desc">لا يتم رفع أي ملفات إلى أي خادم خارجي. المعالجة بالكامل تتم محلياً داخل ذاكرة متصفحك الآمنة.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl border border-pearl-200/60 shadow-sm hover:shadow-md transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-pearl-900 mb-2" data-i18n="feat_2_title">قوة مكتبة Pandas</h3>
+                    <p class="text-sm text-pearl-500 leading-relaxed" data-i18n="feat_2_desc">استفد من أقوى مكتبات تحليل البيانات في لغة بايثون مباشرة لتلخيص وتحليل ملفات الـ CSV الكبيرة في ثوانٍ.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl border border-pearl-200/60 shadow-sm hover:shadow-md transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-pearl-900 mb-2" data-i18n="feat_3_title">سرعة فائقة وبدون تثبيت</h3>
+                    <p class="text-sm text-pearl-500 leading-relaxed" data-i18n="feat_3_desc">لا حاجة لتثبيت بيئة Python أو Anaconda على جهازك. افتح المتصفح وابدأ العمل فوراً من أي مكان.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: JS CLIENT ENGINE (Placeholder Visual App) -->
+        <section id="tab-js" class="tab-content hidden space-y-8 animate-fade-in">
+            <div class="glass-panel p-8 sm:p-12 rounded-3xl border border-pearl-200/60 shadow-sm text-center max-w-3xl mx-auto space-y-6">
+                <div class="w-16 h-16 rounded-2xl bg-amber-50 mx-auto flex items-center justify-center text-amber-500 shadow-inner">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-pearl-900" data-i18n="js_app_title">مساحة محجوزة للتطبيق الأول (JS Client Engine)</h2>
+                <p class="text-pearl-500 leading-relaxed max-w-lg mx-auto" data-i18n="js_app_desc">
+                    هذا القسم مخصص لأداة معالجة البيانات من جانب العميل باستخدام جافا سكريبت الصرفة (Vanilla JS). يجري حالياً تطوير لوحة تحكم تفاعلية متكاملة لربطها بالواجهة.
+                </p>
+                <div class="pt-4">
+                    <button onclick="switchTab('tab-python')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg" data-i18n="js_app_cta">
+                        الانتقال إلى محرك بايثون النشط حالياً
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PYTHON BROWSER ENGINE (Active Pandas App) -->
+        <section id="tab-python" class="tab-content hidden space-y-8 animate-fade-in">
+            
+            <!-- Interactive Dynamic Loading Alert Bar -->
+            <div id="loading-bar-container" class="glass-panel border-l-4 border-amber-400 p-5 rounded-2xl shadow-sm transition-all duration-300">
+                <div class="flex items-start sm:items-center gap-4">
+                    <div id="status-icon-wrapper" class="flex-shrink-0">
+                        <!-- Loading Spinner -->
+                        <svg id="loading-spinner" class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <!-- Success Check (Hidden initially) -->
+                        <svg id="success-check" class="hidden h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-grow">
+                        <p id="loading-text" class="text-sm sm:text-base font-semibold text-pearl-900 transition-all duration-300" data-i18n="loading_init">
+                            برجاء الانتظار ثوانٍ، جاري تحميل بيئة بايثون ومكتبة Pandas محلياً داخل المتصفح...
+                        </p>
+                        <p class="text-xs text-pearl-400 mt-0.5" data-i18n="loading_sub">
+                            يتم تشغيل الأكواد بالكامل في جهازك عبر WebAssembly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Three-Card Matrix (Clean Grid Boxes) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1: Total Records -->
+                <div class="glass-panel p-6 rounded-2xl border border-pearl-200/60 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-pearl-400 uppercase tracking-wider" data-i18n="card_records_title">إجمالي السجلات</span>
+                        <h4 id="metric-records" class="text-3xl font-extrabold text-pearl-900 font-inter">0</h4>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                    </div>
+                </div>
+
+                <!-- Card 2: Total Columns -->
+                <div class="glass-panel p-6 rounded-2xl border border-pearl-200/60 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-pearl-400 uppercase tracking-wider" data-i18n="card_columns_title">إجمالي الأعمدة</span>
+                        <h4 id="metric-columns" class="text-3xl font-extrabold text-pearl-900 font-inter">0</h4>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                    </div>
+                </div>
+
+                <!-- Card 3: File Status -->
+                <div class="glass-panel p-6 rounded-2xl border border-pearl-200/60 shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-pearl-400 uppercase tracking-wider" data-i18n="card_status_title">حالة الملف والمحرك</span>
+                        <h4 id="metric-status" class="text-lg font-extrabold text-amber-600 truncate max-w-[180px]" data-i18n="status_loading">جاري التهيئة...</h4>
+                    </div>
+                    <div id="metric-status-icon-box" class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 transition-colors duration-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Box & Action Area -->
+            <div class="glass-panel p-8 rounded-3xl border border-pearl-200/60 shadow-sm space-y-6">
+                <div class="max-w-xl mx-auto text-center space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-50 mx-auto flex items-center justify-center text-indigo-600 shadow-sm">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-xl font-bold text-pearl-900" data-i18n="upload_title">اختر ملف CSV للتحليل</h3>
+                        <p class="text-sm text-pearl-400" data-i18n="upload_desc">اسحب وأسقط ملف البيانات هنا، أو اضغط للتصفح من جهازك.</p>
+                    </div>
+
+                    <!-- Beautifully styled Custom File Input -->
+                    <div class="relative flex items-center justify-center group">
+                        <label for="csvFile" class="w-full flex flex-col items-center justify-center px-6 py-8 border-2 border-dashed border-pearl-200 hover:border-indigo-400 rounded-2xl cursor-pointer bg-pearl-50/50 hover:bg-indigo-50/20 transition-all duration-300">
+                            <span class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 font-inter" id="file-name-label" data-i18n="browse_files">تصفح الملفات المحلية</span>
+                            <input type="file" id="csvFile" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pandas Output Preview Section -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <h3 class="text-lg font-bold text-pearl-900" data-i18n="output_title">تقرير معالجة البيانات (Pandas Output)</h3>
+                    </div>
+                    <!-- Copy Button -->
+                    <button onclick="copyOutputText()" class="px-4 py-2 bg-white hover:bg-pearl-50 text-pearl-700 border border-pearl-200 hover:border-pearl-300 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 10h5m-5 4h5m-2-14h.01"/></svg>
+                        <span id="copy-btn-text" data-i18n="btn_copy">نسخ التقرير</span>
+                    </button>
+                </div>
+
+                <!-- Custom Elegant Dark Pre-formatted Console Block -->
+                <div class="relative group rounded-2xl overflow-hidden shadow-lg border border-pearl-800">
+                    <div class="absolute top-0 left-0 right-0 h-10 bg-pearl-900 border-b border-pearl-800 flex items-center justify-between px-4">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+                        </div>
+                        <span class="text-[11px] text-pearl-400 font-mono tracking-wider">pandas_engine.py</span>
+                    </div>
+                    <pre id="output" class="bg-pearl-950 text-emerald-400 font-mono text-xs sm:text-sm p-6 pt-14 overflow-x-auto min-h-[250px] max-h-[550px] leading-relaxed text-left" style="direction: ltr;">جاري تحميل بيئة بايثون داخل المتصفح، يرجى الانتظار ثوانٍ...</pre>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Deep Corporate Footer -->
+    <footer class="bg-pearl-950 text-pearl-400 py-16 mt-auto border-t border-pearl-900 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
+            
+            <!-- Column 1: Brand & Desc -->
+            <div class="md:col-span-2 space-y-4 text-right rtl:text-right ltr:text-left">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>
+                    </div>
+                    <span class="text-base font-bold text-white tracking-tight font-inter">PYTHON BROWSER ENGINE</span>
+                </div>
+                <p class="text-xs text-pearl-400 leading-relaxed max-w-sm" data-i18n="footer_desc">
+                    منصة ويب حديثة مصممة لتمكين المحللين والمهندسين من معالجة وفحص البيانات الضخمة محلياً وبشكل فوري عبر الويب دون التضحية بخصوصية وسرية الملفات.
+                </p>
+            </div>
+
+            <!-- Column 2: Quick Navigation Links -->
+            <div class="space-y-4 text-right rtl:text-right ltr:text-left">
+                <h4 class="text-xs font-bold text-white uppercase tracking-widest" data-i18n="footer_links_title">روابط سريعة</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><button onclick="switchTab('tab-home')" class="hover:text-indigo-400 transition-colors" data-i18n="nav_home">الرئيسية</button></li>
+                    <li><button onclick="switchTab('tab-js')" class="hover:text-indigo-400 transition-colors" data-i18n="nav_js">JS Client Engine</button></li>
+                    <li><button onclick="switchTab('tab-python')" class="hover:text-indigo-400 transition-colors" data-i18n="nav_python">Python Engine</button></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Security Compliance Info -->
+            <div class="space-y-4 text-right rtl:text-right ltr:text-left">
+                <h4 class="text-xs font-bold text-white uppercase tracking-widest" data-i18n="footer_security_title">الأمان والالتزام</h4>
+                <p class="text-[11px] leading-relaxed text-pearl-400" data-i18n="footer_security_desc">
+                    جميع العمليات تتم محلياً 100% داخل المتصفح. لا نجمع أي بيانات شخصية أو ملفات مرفوعة. يتوافق مع أعلى معايير الخصوصية.
+                </p>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-pearl-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <p class="text-pearl-500 font-inter">&copy; 2024 PYTHON BROWSER ENGINE. All rights reserved.</p>
+            <div class="flex gap-4 text-pearl-500">
+                <a href="#" class="hover:text-white transition-colors" aria-label="Privacy Policy">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition-colors" aria-label="Terms of Service">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- PyScript Config Definition -->
     <py-config>
         packages = ["pandas"]
     </py-config>
 
-    <!-- كود البايثون الحقيقي الذي سيعمل داخل المتصفح -->
+    <!-- PyScript Core Code Execution -->
     <py-script>
 import pandas as pd
 import io
@@ -110,5 +488,289 @@ change_proxy = create_proxy(process_file)
 document.getElementById("csvFile").addEventListener("change", change_proxy)
     </py-script>
 
+    <!-- UI/UX Dynamic JavaScript (Language Switcher, SPA Tabs, Mutation Observer) -->
+    <script>
+        // Dictionary for Arabic and English UI Copy
+        const i18n = {
+            ar: {
+                page_title: "محرك بايثون داخل المتصفح | Local Data Profiler",
+                brand_name: "PYTHON BROWSER ENGINE",
+                brand_sub: "Local Data Profiler",
+                nav_home: "الرئيسية",
+                nav_js: "JS Client Engine",
+                nav_python: "محرك بايثون",
+                hero_badge: "الجيل القادم من معالجة البيانات داخل المتصفح",
+                hero_title_1: "حلل بياناتك محلياً",
+                hero_title_2: "بسرعة فائقة وأمان تام",
+                hero_desc: "أداة ثورية تتيح لك تشغيل بيئة بايثون ومكتبة Pandas الإحصائية مباشرة داخل متصفحك دون الحاجة إلى خوادم خارجية. بياناتك تظل آمنة تماماً على جهازك الشخصي بنسبة 100%.",
+                hero_cta_primary: "ابدأ تشغيل محرك بايثون",
+                hero_cta_secondary: "معالج JS السريع",
+                feat_1_title: "أمان مطلق للبيانات",
+                feat_1_desc: "لا يتم رفع أي ملفات إلى أي خادم خارجي. المعالجة بالكامل تتم محلياً داخل ذاكرة متصفحك الآمنة.",
+                feat_2_title: "قوة مكتبة Pandas",
+                feat_2_desc: "استفد من أقوى مكتبات تحليل البيانات في لغة بايثون مباشرة لتلخيص وتحليل ملفات الـ CSV الكبيرة في ثوانٍ.",
+                feat_3_title: "سرعة فائقة وبدون تثبيت",
+                feat_3_desc: "لا حاجة لتثبيت بيئة Python أو Anaconda على جهازك. افتح المتصفح وابدأ العمل فوراً من أي مكان.",
+                js_app_title: "مساحة محجوزة للتطبيق الأول (JS Client Engine)",
+                js_app_desc: "هذا القسم مخصص لأداة معالجة البيانات من جانب العميل باستخدام جافا سكريبت الصرفة (Vanilla JS). يجري حالياً تطوير لوحة تحكم تفاعلية متكاملة لربطها بالواجهة.",
+                js_app_cta: "الانتقال إلى محرك بايثون النشط حالياً",
+                loading_init: "برجاء الانتظار ثوانٍ، جاري تحميل بيئة بايثون ومكتبة Pandas محلياً داخل المتصفح...",
+                loading_sub: "يتم تشغيل الأكواد بالكامل في جهازك عبر WebAssembly.",
+                card_records_title: "إجمالي السجلات",
+                card_columns_title: "إجمالي الأعمدة",
+                card_status_title: "حالة الملف والمحرك",
+                status_loading: "جاري التهيئة...",
+                status_ready: "المحرك جاهز تماماً!",
+                status_processing: "جاري المعالجة محلياً...",
+                status_completed: "اكتملت المعالجة!",
+                status_error: "حدث خطأ!",
+                upload_title: "اختر ملف CSV للتحليل",
+                upload_desc: "اسحب وأسقط ملف البيانات هنا، أو اضغط للتصفح من جهازك.",
+                browse_files: "تصفح الملفات المحلية",
+                output_title: "تقرير معالجة البيانات (Pandas Output)",
+                btn_copy: "نسخ التقرير",
+                btn_copied: "تم النسخ!",
+                footer_desc: "منصة ويب حديثة مصممة لتمكين المحللين والمهندسين من معالجة وفحص البيانات الضخمة محلياً وبشكل فوري عبر الويب دون التضحية بخصوصية وسرية الملفات.",
+                footer_links_title: "روابط سريعة",
+                footer_security_title: "الأمان والالتزام",
+                footer_security_desc: "جميع العمليات تتم محلياً 100% داخل المتصفح. لا نجمع أي بيانات شخصية أو ملفات مرفوعة. يتوافق مع أعلى معايير الخصوصية."
+            },
+            en: {
+                page_title: "Python Browser Engine | Local Data Profiler",
+                brand_name: "PYTHON BROWSER ENGINE",
+                brand_sub: "Local Data Profiler",
+                nav_home: "Home",
+                nav_js: "JS Client Engine",
+                nav_python: "Python Engine",
+                hero_badge: "Next-gen Local Data Profiling inside Browser",
+                hero_title_1: "Analyze Your Data Locally",
+                hero_title_2: "With Extreme Speed & Absolute Privacy",
+                hero_desc: "A revolutionary tool that allows you to run Python and Pandas natively inside your web browser. No external servers needed. Your data remains 100% private.",
+                hero_cta_primary: "Start Python Engine",
+                hero_cta_secondary: "JS Client Engine",
+                feat_1_title: "Absolute Privacy",
+                feat_1_desc: "No files are uploaded to any server. All calculations run locally inside your browser's secure memory space.",
+                feat_2_title: "Pandas Superpowers",
+                feat_2_desc: "Harness the most popular statistical library in Python to summarize and analyze large CSV datasets instantly.",
+                feat_3_title: "No Installation Required",
+                feat_3_desc: "No need to setup Python, Jupyter, or Anaconda. Just open the browser and start analyzing right away.",
+                js_app_title: "Reserved Space for JS Client Engine",
+                js_app_desc: "This section is dedicated to local data processing using client-side JavaScript (Vanilla JS). An interactive dashboard is currently under active development.",
+                js_app_cta: "Switch to Active Python Engine",
+                loading_init: "Please wait, launching Python environment and Pandas library locally inside your browser...",
+                loading_sub: "All scripts execute within your local machine via WebAssembly.",
+                card_records_title: "Total Records",
+                card_columns_title: "Total Columns",
+                card_status_title: "File & Engine Status",
+                status_loading: "Initializing...",
+                status_ready: "Engine Fully Ready!",
+                status_processing: "Processing locally...",
+                status_completed: "Processing Complete!",
+                status_error: "Error Occurred!",
+                upload_title: "Choose CSV File to Analyze",
+                upload_desc: "Drag and drop your file here, or click to browse local storage.",
+                browse_files: "Browse Local Files",
+                output_title: "Data Profiling Report (Pandas Output)",
+                btn_copy: "Copy Report",
+                btn_copied: "Copied!",
+                footer_desc: "A modern web system designed to empower data analysts and engineers to inspect large datasets securely and instantly on client side.",
+                footer_links_title: "Quick Links",
+                footer_security_title: "Security & Compliance",
+                footer_security_desc: "100% client-side operations. No data collection or cloud processing. Fully compliant with high-tier security standards."
+            }
+        };
+
+        let currentLang = 'ar';
+
+        // Set Language & Direction
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+            // Swap fonts
+            if (lang === 'ar') {
+                document.body.classList.remove('font-inter');
+                document.body.classList.add('font-cairo');
+            } else {
+                document.body.classList.remove('font-cairo');
+                document.body.classList.add('font-inter');
+            }
+
+            // Update DOM content based on translation keys
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (i18n[lang][key]) {
+                    element.textContent = i18n[lang][key];
+                }
+            });
+
+            // Update dynamic file input label if no file selected
+            const fileInput = document.getElementById('csvFile');
+            const fileLabel = document.getElementById('file-name-label');
+            if (fileInput && fileInput.files.length === 0) {
+                fileLabel.textContent = i18n[lang]['browse_files'];
+            }
+
+            // Update language switcher label
+            document.getElementById('lang-label').textContent = lang === 'ar' ? 'EN' : 'العربية';
+
+            // Refresh dynamic metrics status text
+            updateStatusTextBasedOnCurrentState();
+        }
+
+        function toggleLanguage() {
+            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+        }
+
+        // Tab Switching Mechanism (SPA)
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Toggle active styling on navigation buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'bg-white', 'shadow-sm');
+                btn.classList.add('text-pearl-600', 'hover:text-pearl-900');
+            });
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-pearl-600', 'hover:text-pearl-900');
+                activeBtn.classList.add('text-indigo-600', 'bg-white', 'shadow-sm');
+            }
+        }
+
+        // File Input visual feedback
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : '';
+            const label = document.getElementById('file-name-label');
+            if (fileName) {
+                label.textContent = fileName;
+                label.classList.add('text-indigo-600', 'font-bold');
+            }
+        });
+
+        // Copy Code Block Output
+        function copyOutputText() {
+            const outputText = document.getElementById('output').innerText;
+            navigator.clipboard.writeText(outputText).then(() => {
+                const copyBtnText = document.getElementById('copy-btn-text');
+                const originalText = copyBtnText.textContent;
+                copyBtnText.textContent = i18n[currentLang]['btn_copied'];
+                setTimeout(() => {
+                    copyBtnText.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Mutation Observer to watch PyScript Output & Update Metrics Dashboard
+        let engineState = 'loading'; // loading, ready, processing, completed, error
+
+        function updateStatusTextBasedOnCurrentState() {
+            const statusLabel = document.getElementById('metric-status');
+            const statusIconBox = document.getElementById('metric-status-icon-box');
+            const loadingBar = document.getElementById('loading-bar-container');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const successCheck = document.getElementById('success-check');
+            const loadingText = document.getElementById('loading-text');
+
+            if (engineState === 'loading') {
+                statusLabel.textContent = i18n[currentLang]['status_loading'];
+                statusLabel.className = "text-lg font-extrabold text-amber-600 truncate max-w-[180px]";
+                statusIconBox.className = "w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600";
+                
+                loadingSpinner.classList.remove('hidden');
+                successCheck.classList.add('hidden');
+                loadingText.textContent = i18n[currentLang]['loading_init'];
+                loadingBar.className = "glass-panel border-l-4 border-amber-400 p-5 rounded-2xl shadow-sm transition-all duration-300";
+            } 
+            else if (engineState === 'ready') {
+                statusLabel.textContent = i18n[currentLang]['status_ready'];
+                statusLabel.className = "text-lg font-extrabold text-emerald-600 truncate max-w-[180px]";
+                statusIconBox.className = "w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600";
+
+                loadingSpinner.classList.add('hidden');
+                successCheck.classList.remove('hidden');
+                loadingText.textContent = currentLang === 'ar' ? "المحرك جاهز تماماً للعمل!" : "The engine is fully ready to work!";
+                loadingBar.className = "glass-panel border-l-4 border-emerald-500 p-5 rounded-2xl shadow-sm transition-all duration-300";
+            }
+            else if (engineState === 'processing') {
+                statusLabel.textContent = i18n[currentLang]['status_processing'];
+                statusLabel.className = "text-lg font-extrabold text-indigo-600 truncate max-w-[180px]";
+                statusIconBox.className = "w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600";
+
+                loadingSpinner.classList.remove('hidden');
+                successCheck.classList.add('hidden');
+                loadingText.textContent = currentLang === 'ar' ? "جاري المعالجة بواسطة كود بايثون محلياً..." : "Processing locally via Python code...";
+                loadingBar.className = "glass-panel border-l-4 border-indigo-500 p-5 rounded-2xl shadow-sm transition-all duration-300";
+            }
+            else if (engineState === 'completed') {
+                statusLabel.textContent = i18n[currentLang]['status_completed'];
+                statusLabel.className = "text-lg font-extrabold text-emerald-600 truncate max-w-[180px]";
+                statusIconBox.className = "w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600";
+
+                loadingSpinner.classList.add('hidden');
+                successCheck.classList.remove('hidden');
+                loadingText.textContent = currentLang === 'ar' ? "تم تحليل ملف البيانات بنجاح!" : "Data file parsed successfully!";
+                loadingBar.className = "glass-panel border-l-4 border-emerald-500 p-5 rounded-2xl shadow-sm transition-all duration-300";
+            }
+            else if (engineState === 'error') {
+                statusLabel.textContent = i18n[currentLang]['status_error'];
+                statusLabel.className = "text-lg font-extrabold text-red-600 truncate max-w-[180px]";
+                statusIconBox.className = "w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600";
+
+                loadingSpinner.classList.add('hidden');
+                successCheck.classList.add('hidden');
+                loadingText.textContent = currentLang === 'ar' ? "حدث خطأ أثناء معالجة الملف!" : "An error occurred during processing!";
+                loadingBar.className = "glass-panel border-l-4 border-red-500 p-5 rounded-2xl shadow-sm transition-all duration-300";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Set initial language
+            setLanguage('ar');
+
+            const targetOutput = document.getElementById('output');
+            
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    const text = targetOutput.innerText;
+                    
+                    if (text.includes("بيئة بايثون جاهزة!")) {
+                        engineState = 'ready';
+                        updateStatusTextBasedOnCurrentState();
+                    } 
+                    else if (text.includes("جاري المعالجة بواسطة كود بايثون")) {
+                        engineState = 'processing';
+                        updateStatusTextBasedOnCurrentState();
+                    }
+                    else if (text.includes("PYTHON BROWSER ENGINE REPORT")) {
+                        engineState = 'completed';
+                        updateStatusTextBasedOnCurrentState();
+
+                        // Parse rows and columns from output using Regex
+                        const rowsMatch = text.match(/Total Records \(Rows\):\s*(\d+)/i);
+                        const colsMatch = text.match(/Total Columns:\s*(\d+)/i);
+
+                        if (rowsMatch && rowsMatch[1]) {
+                            document.getElementById('metric-records').textContent = parseInt(rowsMatch[1]).toLocaleString();
+                        }
+                        if (colsMatch && colsMatch[1]) {
+                            document.getElementById('metric-columns').textContent = parseInt(colsMatch[1]).toLocaleString();
+                        }
+                    }
+                    else if (text.includes("خطأ أثناء معالجة البايثون")) {
+                        engineState = 'error';
+                        updateStatusTextBasedOnCurrentState();
+                    }
+                });
+            });
+
+            observer.observe(targetOutput, { childList: true, characterData: true, subtree: true });
+        });
+    </script>
 </body>
 </html>
